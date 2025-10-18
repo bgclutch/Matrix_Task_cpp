@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.13)
 
 project(matrix)
-
 add_subdirectory(matrix)
 
 option(ENABLE_ASAN OFF)

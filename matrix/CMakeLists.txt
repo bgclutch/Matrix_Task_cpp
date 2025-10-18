@@ -1,7 +1,10 @@
 add_executable(matrix)
 
-target_include_directories(matrix PRIVATE ${PROJECT_SOURCE_DIR})
+target_include_directories(matrix PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/inc
+)
 
 target_sources(matrix PRIVATE
-    main.cpp
+    src/main.cpp
+    src/double_compare.cpp
 )
