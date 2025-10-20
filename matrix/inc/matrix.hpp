@@ -7,7 +7,7 @@
 
 namespace matrix {
 template <typename ElemType>
-class Matrix final : public Matrix_Base<ElemType> {
+class SquareMatrix final : public Matrix_Base<ElemType> {
  private:
     using Base = Matrix_Base<ElemType>;
     using Base::rows_;
@@ -21,7 +21,6 @@ class Matrix final : public Matrix_Base<ElemType> {
 
      public:
         explicit ProxyRow(ElemType* matrixRow) : matrixRow_(matrixRow) {}
-
         ElemType& operator[](size_t index) {
             return matrixRow_[index];
         }
@@ -32,8 +31,8 @@ class Matrix final : public Matrix_Base<ElemType> {
     };
 
  public:
-    using Base::Base;
-    ~Matrix() override {}
+    explicit SquareMatrix(size_t dimension) : Matrix_Base<ElemType>(dimension) {}
+    ~SquareMatrix() override {}
 
     ProxyRow operator[](size_t row) {
         if (row >= rows_)
@@ -41,44 +40,72 @@ class Matrix final : public Matrix_Base<ElemType> {
         return ProxyRow(data_[row]);
     }
 
-    static Matrix eye(size_t rows, size_t cols) {
-        Matrix matrix(rows, cols);
-        size_t dimension = std::min(rows, cols);
-
-        for (size_t i = 0; i < dimension; ++i)
+    static SquareMatrix eye(size_t rows) {
+        SquareMatrix matrix(rows);
+        for (size_t i = 0; i < rows; ++i)
             matrix[i][i] = 1;
         return matrix;
     }
 
-    static Matrix eye(size_t dimension) {
-        Matrix matrix(dimension);
-        for (size_t i = 0; i < dimension; ++i)
-            matrix[i][i] = 1;
-        return matrix;
-    }
-
-    #if 0
+/*
+1. find abs max elem
+2. divide every row EXCEPT THIS to coef
+...
+*/
     double getDeterminant() {
         double determinant = 1.;
-        Matrix<double> tmp(*this);
+        SquareMatrix<double> tmp(*this);
 
-        for (size_t i = 0; i < rows_ - 1; ++i) {
+        int swapRowsCount = 0;
 
+        for (size_t j = 0; j < cols_ - 1; ++j) {
+            ElemType comparable = tmp.data_[j][j];
+            size_t chosenRowInd = j;
+
+            for (size_t i = j; i < rows_; ++i) {
+                if (std::fabs(comparable) < std::fabs(tmp.data_[i][j])) {
+                    comparable = tmp.data_[i][j];
+                    chosenRowInd = i;
+                }
+            }
+
+            if (j != chosenRowInd) {
+                tmp.swapRowsByInd(j, chosenRowInd);
+                ++swapRowsCount;
+            }
+
+            auto& chosenRow = tmp.data_[j];
+
+            if (doubleCompare::isEqual(chosenRow[j], 0.))
+                return 0.;
+
+            for (size_t i = j + 1; i < rows_; ++i) {
+                ElemType* row = tmp.data_[i];
+                ElemType divCoef = row[j] / chosenRow[j];
+
+                for (size_t r_ind = j; r_ind < cols_; ++r_ind) {
+                    row[r_ind] -= chosenRow[r_ind] * divCoef;
+                }
+            }
         }
+
+        for (size_t i = 0; i < rows_; ++i)
+            determinant *= tmp.data_[i][i];
+
+        if (swapRowsCount % 2)
+            determinant = -determinant;
 
         return determinant;
     }
-    #endif
 
-    void swapRows(const size_t first, const size_t second) noexcept { // maybe throw exception here??
+    void swapRowsByInd(const size_t first, const size_t second) noexcept { // maybe throw exception here??
         std::swap(data_[first], data_[second]);
     }
 
     ElemType getTrace() const {
         ElemType res = 0;
-        size_t dimension = std::min(rows_, cols_);
 
-        for (size_t i = 0; i < dimension; ++i)
+        for (size_t i = 0; i < rows_; ++i)
             res += data_[i][i];
 
         return res;
@@ -86,15 +113,14 @@ class Matrix final : public Matrix_Base<ElemType> {
 
     ElemType getMainDiagElemsMult() const {
         ElemType res = 1;
-        size_t dimension = std::min(rows_, cols_);
 
-        for (size_t i = 0; i < dimension; ++i)
+        for (size_t i = 0; i < rows_; ++i)
             res *= data_[i][i];
 
         return res;
     }
 
-    Matrix& negate() & {
+    SquareMatrix& negate() & {
         for (size_t i = 0; i < rows_; ++i) {
             for (size_t j = 0; j < cols_; ++j) {
                 data_[i][j] = -data_[i][j];

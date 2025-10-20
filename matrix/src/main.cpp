@@ -2,17 +2,17 @@
 #include <iostream>
 
 int main() {
-    size_t rows, cols;
-    std::cin >> rows >> cols;
+    size_t dimension;
+    std::cin >> dimension;
     if (!std::cin.good()) {
         std::cerr << "Illegal matrix dimension\n";
         return EXIT_FAILURE;
     }
 
-    matrix::Matrix<double> MyMatrix(rows, cols);
+    matrix::SquareMatrix<double> MyMatrix(dimension);
 
-    for (size_t i = 0; i < rows; ++i) {
-        for (size_t j = 0; j < cols; ++j) {
+    for (size_t i = 0; i < dimension; ++i) {
+        for (size_t j = 0; j < dimension; ++j) {
             int num;
             if (!(std::cin >> num))
                 assert(0);
@@ -21,11 +21,14 @@ int main() {
     }
 
     MyMatrix.printMatrix();
+    std::cout << std::endl;
 
-    auto NewMatrix = matrix::Matrix<double>::eye(5);
-    NewMatrix.printMatrix();
+    std::cout << "det:" << MyMatrix.getDeterminant() << std::endl;
 
-    std::cout << MyMatrix.getMainDiagElemsMult() << " " << MyMatrix.getTrace() << std::endl;
+    // auto NewMatrix = matrix::SquareMatrix<double>::eye(5);
+    // NewMatrix.printMatrix();
+
+    // std::cout << MyMatrix.getMainDiagElemsMult() << " " << MyMatrix.getTrace() << std::endl;
 
     return EXIT_SUCCESS;
 }
