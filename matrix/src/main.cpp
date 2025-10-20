@@ -13,22 +13,16 @@ int main() {
 
     for (size_t i = 0; i < dimension; ++i) {
         for (size_t j = 0; j < dimension; ++j) {
-            int num;
-            if (!(std::cin >> num))
-                assert(0);
+            double num;
+            if (!(std::cin >> num)) {
+                std::cerr << "Wrong matrix input data\n";
+                return EXIT_FAILURE;
+            }
             MyMatrix[i][j] = num;
         }
     }
 
-    MyMatrix.printMatrix();
-    std::cout << std::endl;
-
-    std::cout << "det:" << MyMatrix.getDeterminant() << std::endl;
-
-    // auto NewMatrix = matrix::SquareMatrix<double>::eye(5);
-    // NewMatrix.printMatrix();
-
-    // std::cout << MyMatrix.getMainDiagElemsMult() << " " << MyMatrix.getTrace() << std::endl;
+    std::cout << MyMatrix.getDeterminant() << std::endl;
 
     return EXIT_SUCCESS;
 }

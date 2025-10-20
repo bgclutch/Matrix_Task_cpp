@@ -2,10 +2,11 @@ cmake_minimum_required(VERSION 3.13)
 
 project(matrix)
 add_subdirectory(matrix)
+add_subdirectory(tests)
 
 option(ENABLE_ASAN OFF)
 
-foreach(target matrix)
+foreach(target matrix tests)
     target_compile_features(${target} PUBLIC cxx_std_23)
 endforeach()
 

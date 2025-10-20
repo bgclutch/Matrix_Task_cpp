@@ -34,25 +34,22 @@ class SquareMatrix final : public Matrix_Base<ElemType> {
     explicit SquareMatrix(size_t dimension) : Matrix_Base<ElemType>(dimension) {}
     ~SquareMatrix() override {}
 
-    ProxyRow operator[](size_t row) {
-        if (row >= rows_)
-            assert(0);
+    ProxyRow operator[](const size_t row) noexcept {
         return ProxyRow(data_[row]);
     }
 
-    static SquareMatrix eye(size_t rows) {
+    const ProxyRow operator[](const size_t row) const noexcept {
+        return ProxyRow(data_[row]);
+    }
+
+    static SquareMatrix eye(size_t rows, ElemType value = 1) {
         SquareMatrix matrix(rows);
         for (size_t i = 0; i < rows; ++i)
-            matrix[i][i] = 1;
+            matrix[i][i] = value;
         return matrix;
     }
 
-/*
-1. find abs max elem
-2. divide every row EXCEPT THIS to coef
-...
-*/
-    double getDeterminant() {
+    auto getDeterminant() const { // TODO traits for doubleCompare functions
         double determinant = 1.;
         SquareMatrix<double> tmp(*this);
 
@@ -95,14 +92,23 @@ class SquareMatrix final : public Matrix_Base<ElemType> {
         if (swapRowsCount % 2)
             determinant = -determinant;
 
+        if (std::is_integral_v<ElemType>) {
+            double decimalPart = determinant - std::trunc(determinant);
+            if (doubleCompare::isEqual(decimalPart, 0.))
+                return static_cast<ElemType>(std::round(determinant));
+        }
+        else {
+            return static_cast<ElemType>(determinant);
+        }
+
         return determinant;
     }
 
-    void swapRowsByInd(const size_t first, const size_t second) noexcept { // maybe throw exception here??
+    void swapRowsByInd(const size_t first, const size_t second) noexcept {
         std::swap(data_[first], data_[second]);
     }
 
-    ElemType getTrace() const {
+    ElemType getTrace() const noexcept {
         ElemType res = 0;
 
         for (size_t i = 0; i < rows_; ++i)
@@ -111,7 +117,7 @@ class SquareMatrix final : public Matrix_Base<ElemType> {
         return res;
     }
 
-    ElemType getMainDiagElemsMult() const {
+    ElemType getMainDiagElemsMult() const noexcept {
         ElemType res = 1;
 
         for (size_t i = 0; i < rows_; ++i)
@@ -138,7 +144,7 @@ class SquareMatrix final : public Matrix_Base<ElemType> {
     }
 
  public:
-    #if 1
+    #if 0
     void printMatrix() {
         for (size_t i = 0; i < rows_; ++i) {
             for (size_t j = 0; j < cols_; ++j) {

@@ -24,7 +24,7 @@ class Matrix_Base {
     explicit Matrix_Base(size_t rows) :
         Matrix_Base(rows, rows)  {}
 
- protected:
+ public:
     virtual ~Matrix_Base() { // destructor
         this->deleteMatrix();
     }
@@ -43,7 +43,7 @@ class Matrix_Base {
         if (this == &other)
             return *this;
 
-        ElemType** tmp = allocatedDeepCopy(other.data_);
+        ElemType** tmp = other.allocatedDeepCopy(other.data_);
         this->deleteMatrix();
 
         rows_ = other.rows_;
@@ -58,6 +58,9 @@ class Matrix_Base {
             return *this;
 
         this->swapCondition(other);
+        other.rows_ = 0;
+        other.cols_ = 0;
+        other.data_ = nullptr;
 
         return *this;
     }
