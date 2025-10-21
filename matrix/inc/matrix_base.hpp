@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cassert>
+#include <vector>
 
 namespace matrix {
 template <typename ElemType>
@@ -13,7 +14,7 @@ class Matrix_Base {
     ElemType** data_;
 
  public:
-    explicit Matrix_Base(size_t rows, size_t cols, ElemType value = 0) : rows_(rows), cols_(cols) { // constructors
+    Matrix_Base(size_t rows, size_t cols, ElemType value = 0) : rows_(rows), cols_(cols) { // constructors
         data_ = new ElemType*[rows_];
         for (size_t i = 0; i < rows_; ++i) {
             data_[i] = new ElemType[cols_];
@@ -21,8 +22,22 @@ class Matrix_Base {
         }
     }
 
+    explicit Matrix_Base(size_t rows, size_t cols, const std::vector<ElemType>& elements) : rows_(rows), cols_(cols) {
+        if ((rows_ * cols_) != elements.size())
+            throw std::invalid_argument("Matrix and vector sizes aren't same");
+        data_ = new ElemType*[rows_];
+        for (size_t i = 0; i < rows_; ++i) {
+            data_[i] = new ElemType[cols_];
+            for (size_t j = 0; j < cols_; ++j)
+                data_[i][j] = elements[i * cols_ + j];
+        }
+    }
+
     explicit Matrix_Base(size_t rows) :
         Matrix_Base(rows, rows)  {}
+
+    explicit Matrix_Base(size_t rows, const std::vector<ElemType>& elements) :
+        Matrix_Base(rows, rows, elements)  {}
 
  public:
     virtual ~Matrix_Base() { // destructor
@@ -63,6 +78,26 @@ class Matrix_Base {
         other.data_ = nullptr;
 
         return *this;
+    }
+
+    size_t rows() const noexcept {
+        return rows_;
+    }
+
+    size_t cols() const noexcept {
+        return cols_;
+    }
+
+    ElemType* getRow(const size_t row) {
+        if (row >= rows_)
+            throw std::out_of_range("attempt to get row out of range");
+        return data_[row];
+    }
+
+    const ElemType* getRow(const size_t row) const {
+        if (row >= rows_)
+            throw std::out_of_range("attempt to get row out of range");
+        return data_[row];
     }
 
  protected:

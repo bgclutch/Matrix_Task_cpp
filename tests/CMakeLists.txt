@@ -2,6 +2,7 @@ find_package(GTest REQUIRED)
 
 add_executable(tests
     unit/test.cpp
+    ${PROJECT_SOURCE_DIR}/matrix/src/double_compare.cpp
 )
 
 target_include_directories(tests PRIVATE

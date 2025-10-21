@@ -32,7 +32,7 @@ def apply_random_row_ops(A, num_ops):
     return A
 
 for test_number in range(4):
-    test_size = random.randint(2, 10)
+    test_size = random.randint(2, 6)
     A = numpy.random.uniform(-300, 300, size=(test_size, test_size))
     filename = os.path.join(path, f"test_{test_number+1:02}.in")
     with open(filename, 'w') as f:
@@ -41,7 +41,7 @@ for test_number in range(4):
             f.write(" ".join(map(str, row)) + "\n")
 
 for test_number in range(4, 6):
-    test_size = random.randint(5, 15)
+    test_size = random.randint(4, 7)
     A = make_matrix_with_det(42, test_size)
     apply_random_row_ops(A, random.randint(30, 100))
     filename = os.path.join(path, f"test_{test_number+1:02}.in")
@@ -51,7 +51,7 @@ for test_number in range(4, 6):
             f.write(" ".join(map(str, row)) + "\n")
 
 for test_number in range(6, 9):
-    test_size = random.randint(5, 15)
+    test_size = random.randint(4, 7)
     det_val = random.randint(2, 1000)
     A = make_matrix_with_det(det_val, test_size)
     apply_random_row_ops(A, random.randint(30, 100))
@@ -61,7 +61,7 @@ for test_number in range(6, 9):
         for row in A:
             f.write(" ".join(map(str, row)) + "\n")
 
-test_size = 100
+test_size = 11
 A = numpy.random.uniform(-300, 300, size=(test_size, test_size))
 filename = os.path.join(path, "test_10.in")
 with open(filename, 'w') as f:

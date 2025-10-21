@@ -4,6 +4,7 @@
 #include "double_compare.hpp"
 #include <cassert>
 #include <iostream>
+#include <vector>
 
 namespace matrix {
 template <typename ElemType>
@@ -13,6 +14,27 @@ class SquareMatrix final : public Matrix_Base<ElemType> {
     using Base::rows_;
     using Base::cols_;
     using Base::data_;
+
+ public:
+    explicit SquareMatrix(size_t dimension) : Matrix_Base<ElemType>(dimension) {}
+    explicit SquareMatrix(size_t dimension, const std::vector<ElemType>& elements) : Matrix_Base<ElemType>(dimension, elements) {}
+    template <typename OtherType>  // TODO requires random access iterator tag
+    explicit SquareMatrix(const SquareMatrix<OtherType>& other) : SquareMatrix(other.rows()) {
+        for (size_t i = 0; i < rows_; ++i) {
+            for (size_t j = 0; j < cols_; ++j)
+                data_[i][j] = static_cast<ElemType>(other[i][j]);
+        }
+    }
+
+    ~SquareMatrix() override {}
+
+    static SquareMatrix eye(size_t rows, ElemType value = 1) {
+        SquareMatrix matrix(rows);
+        for (size_t i = 0; i < rows; ++i)
+            matrix[i][i] = value;
+        return matrix;
+    }
+
 
  private:
     class ProxyRow {
@@ -31,9 +53,6 @@ class SquareMatrix final : public Matrix_Base<ElemType> {
     };
 
  public:
-    explicit SquareMatrix(size_t dimension) : Matrix_Base<ElemType>(dimension) {}
-    ~SquareMatrix() override {}
-
     ProxyRow operator[](const size_t row) noexcept {
         return ProxyRow(data_[row]);
     }
@@ -42,26 +61,19 @@ class SquareMatrix final : public Matrix_Base<ElemType> {
         return ProxyRow(data_[row]);
     }
 
-    static SquareMatrix eye(size_t rows, ElemType value = 1) {
-        SquareMatrix matrix(rows);
-        for (size_t i = 0; i < rows; ++i)
-            matrix[i][i] = value;
-        return matrix;
-    }
-
-    auto getDeterminant() const { // TODO traits for doubleCompare functions
+    ElemType getDeterminant() const { // TODO traits for doubleCompare functions
         double determinant = 1.;
         SquareMatrix<double> tmp(*this);
 
         int swapRowsCount = 0;
 
         for (size_t j = 0; j < cols_ - 1; ++j) {
-            ElemType comparable = tmp.data_[j][j];
+            ElemType comparable = tmp[j][j];
             size_t chosenRowInd = j;
 
             for (size_t i = j; i < rows_; ++i) {
-                if (std::fabs(comparable) < std::fabs(tmp.data_[i][j])) {
-                    comparable = tmp.data_[i][j];
+                if (std::fabs(comparable) < std::fabs(tmp[i][j])) {
+                    comparable = tmp[i][j];
                     chosenRowInd = i;
                 }
             }
@@ -71,14 +83,14 @@ class SquareMatrix final : public Matrix_Base<ElemType> {
                 ++swapRowsCount;
             }
 
-            auto& chosenRow = tmp.data_[j];
+            double* chosenRow = tmp.getRow(j);
 
             if (doubleCompare::isEqual(chosenRow[j], 0.))
                 return 0.;
 
             for (size_t i = j + 1; i < rows_; ++i) {
-                ElemType* row = tmp.data_[i];
-                ElemType divCoef = row[j] / chosenRow[j];
+                double* row = tmp.getRow(i);
+                double divCoef = row[j] / chosenRow[j];
 
                 for (size_t r_ind = j; r_ind < cols_; ++r_ind) {
                     row[r_ind] -= chosenRow[r_ind] * divCoef;
@@ -86,22 +98,12 @@ class SquareMatrix final : public Matrix_Base<ElemType> {
             }
         }
 
-        for (size_t i = 0; i < rows_; ++i)
-            determinant *= tmp.data_[i][i];
+        determinant = tmp.getMainDiagElemsMult();
 
         if (swapRowsCount % 2)
             determinant = -determinant;
 
-        if (std::is_integral_v<ElemType>) {
-            double decimalPart = determinant - std::trunc(determinant);
-            if (doubleCompare::isEqual(decimalPart, 0.))
-                return static_cast<ElemType>(std::round(determinant));
-        }
-        else {
-            return static_cast<ElemType>(determinant);
-        }
-
-        return determinant;
+        return std::is_integral_v<ElemType> ? std::round(determinant) : determinant;
     }
 
     void swapRowsByInd(const size_t first, const size_t second) noexcept {
@@ -117,8 +119,8 @@ class SquareMatrix final : public Matrix_Base<ElemType> {
         return res;
     }
 
-    ElemType getMainDiagElemsMult() const noexcept {
-        ElemType res = 1;
+    double getMainDiagElemsMult() const noexcept {
+        double res = 1;
 
         for (size_t i = 0; i < rows_; ++i)
             res *= data_[i][i];
@@ -133,14 +135,6 @@ class SquareMatrix final : public Matrix_Base<ElemType> {
             }
         }
         return *this;
-    }
-
-    size_t rows() const noexcept {
-        return rows_;
-    }
-
-    size_t cols() const noexcept {
-        return cols_;
     }
 
  public:
