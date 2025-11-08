@@ -8,7 +8,7 @@
 
 namespace matrix {
 template <typename ElemType>
-class SquareMatrix final : public Matrix_Base<ElemType> {
+class Matrix final : public Matrix_Base<ElemType> { // TODO check isSquare in square matrix methods
  private:
     using Base = Matrix_Base<ElemType>;
     using Base::rows_;
@@ -16,20 +16,18 @@ class SquareMatrix final : public Matrix_Base<ElemType> {
     using Base::data_;
 
  public:
-    explicit SquareMatrix(size_t dimension) : Matrix_Base<ElemType>(dimension) {}
-    explicit SquareMatrix(size_t dimension, const std::vector<ElemType>& elements) : Matrix_Base<ElemType>(dimension, elements) {}
+    explicit Matrix(size_t dimension) : Matrix_Base<ElemType>(dimension) {}
+    explicit Matrix(size_t dimension, const std::vector<ElemType>& elements) : Matrix_Base<ElemType>(dimension, elements) {}
     template <typename OtherType>  // TODO requires random access iterator tag
-    explicit SquareMatrix(const SquareMatrix<OtherType>& other) : SquareMatrix(other.rows()) {
+    explicit Matrix(const Matrix<OtherType>& other) : Matrix(other.rows()) {
         for (size_t i = 0; i < rows_; ++i) {
             for (size_t j = 0; j < cols_; ++j)
                 data_[i][j] = static_cast<ElemType>(other[i][j]);
         }
     }
 
-    ~SquareMatrix() override {}
-
-    static SquareMatrix eye(size_t rows, ElemType value = 1) {
-        SquareMatrix matrix(rows);
+    static Matrix eye(size_t rows, ElemType value = 1) {
+        Matrix matrix(rows);
         for (size_t i = 0; i < rows; ++i)
             matrix[i][i] = value;
         return matrix;
@@ -53,17 +51,26 @@ class SquareMatrix final : public Matrix_Base<ElemType> {
     };
 
  public:
-    ProxyRow operator[](const size_t row) noexcept {
+    ProxyRow operator[](size_t row) noexcept {
         return ProxyRow(data_[row]);
     }
 
-    const ProxyRow operator[](const size_t row) const noexcept {
+    const ProxyRow operator[](size_t row) const noexcept {
         return ProxyRow(data_[row]);
     }
+    #if 0
+    ElemType& operator[](size_t i, size_t j)  noexcept {
+        return data_[i][j];
+    }
+
+    const ElemType& operator[](size_t i, size_t j) const noexcept {
+        return data_[i][j];
+    }
+    #endif
 
     ElemType getDeterminant() const { // TODO traits for doubleCompare functions
         double determinant = 1.;
-        SquareMatrix<double> tmp(*this);
+        Matrix<double> tmp(*this);
 
         int swapRowsCount = 0;
 
@@ -128,7 +135,7 @@ class SquareMatrix final : public Matrix_Base<ElemType> {
         return res;
     }
 
-    SquareMatrix& negate() & {
+    Matrix& negate() & {
         for (size_t i = 0; i < rows_; ++i) {
             for (size_t j = 0; j < cols_; ++j) {
                 data_[i][j] = -data_[i][j];

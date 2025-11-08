@@ -13,7 +13,6 @@ class Matrix_Base {
     size_t cols_;
     ElemType** data_;
 
- public:
     Matrix_Base(size_t rows, size_t cols, ElemType value = 0) : rows_(rows), cols_(cols) { // constructors
         data_ = new ElemType*[rows_];
         for (size_t i = 0; i < rows_; ++i) {
@@ -39,14 +38,12 @@ class Matrix_Base {
     explicit Matrix_Base(size_t rows, const std::vector<ElemType>& elements) :
         Matrix_Base(rows, rows, elements)  {}
 
- public:
-    virtual ~Matrix_Base() { // destructor
-        this->deleteMatrix();
+    ~Matrix_Base() { // destructor
+        deleteMatrix();
     }
 
- public:
     Matrix_Base(const Matrix_Base<ElemType>& other) : rows_(other.rows_), cols_(other.cols_) { // copy constructor
-        data_ = allocatedDeepCopy(other.data_);
+        data_ = dataDeepCopy(other.data_);
     }
 
     Matrix_Base(Matrix_Base<ElemType>&& other) noexcept : // move constructor
@@ -58,12 +55,8 @@ class Matrix_Base {
         if (this == &other)
             return *this;
 
-        ElemType** tmp = other.allocatedDeepCopy(other.data_);
-        this->deleteMatrix();
-
-        rows_ = other.rows_;
-        cols_ = other.cols_;
-        data_ = tmp;
+        Matrix_Base tmp(other);
+        swap(tmp);
 
         return *this;
     }
@@ -72,7 +65,7 @@ class Matrix_Base {
         if (this == &other)
             return *this;
 
-        this->swapCondition(other);
+        swap(other);
         other.rows_ = 0;
         other.cols_ = 0;
         other.data_ = nullptr;
@@ -80,6 +73,7 @@ class Matrix_Base {
         return *this;
     }
 
+ public:
     size_t rows() const noexcept {
         return rows_;
     }
@@ -100,14 +94,14 @@ class Matrix_Base {
         return data_[row];
     }
 
- protected:
-    void swapCondition(Matrix_Base& other) noexcept {
+    void swap(Matrix_Base& other) noexcept {
         std::swap(rows_, other.rows_);
         std::swap(cols_, other.cols_);
         std::swap(data_, other.data_);
     }
 
-    ElemType** allocatedDeepCopy(ElemType** src) const {
+ protected:
+    ElemType** dataDeepCopy(ElemType** src) const {
         ElemType** newData = new ElemType*[rows_];
         for (size_t i = 0; i < rows_; ++i)
             newData[i] = new ElemType[cols_];
@@ -118,7 +112,7 @@ class Matrix_Base {
         return newData;
     }
 
-    void deleteMatrix() {
+    void deleteMatrix() noexcept {
         for (size_t i = 0; i < rows_; ++i)
             delete[] data_[i];
         delete[] data_;

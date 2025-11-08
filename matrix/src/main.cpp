@@ -9,7 +9,7 @@ int main() {
         return EXIT_FAILURE;
     }
 
-    matrix::SquareMatrix<double> MyMatrix(dimension);
+    matrix::Matrix<double> MyMatrix(dimension);
 
     for (size_t i = 0; i < dimension; ++i) {
         for (size_t j = 0; j < dimension; ++j) {
