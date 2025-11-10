@@ -56,7 +56,7 @@ TEST(MATRIX_API, operator_square_scope_test) {
     ASSERT_EQ(matrix[4][2], 24);
 }
 
-TEST(MATRIX_API, getTrace_exception_test) {
+TEST(MATRIX_EXCEPTIONS, getTrace_exception_test) {
     auto matrix = matrix::Matrix<int>(6, 4, 42);
     EXPECT_THROW(matrix.getTrace(), std::runtime_error);
 }
@@ -76,6 +76,18 @@ TEST(MATRIX_EXCEPTIONS, getMainDiagElemsMult_exception_test) {
     std::vector<int> elements {9, 2, 3, 4, 15, 6};
     auto matrix = matrix::Matrix<int>(2,3, elements);
     EXPECT_THROW(matrix.getMainDiagElemsMult(), std::runtime_error);
+}
+
+TEST(MATRIX_EXCEPTIONS, dataDeepCopy_exception_test) {
+    auto matrix1 = matrix::Matrix<int>(2,2);
+    bool isThrown = false;
+    try {
+        auto matrix2 = matrix1;
+    } catch (const std::out_of_range& error) {
+        isThrown = true;
+    }
+
+    ASSERT_FALSE(isThrown);
 }
 
 TEST(MATRIX_API, float_determinant_founder) {
