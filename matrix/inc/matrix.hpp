@@ -32,9 +32,8 @@ class Matrix final : public Matrix_Base<ElemType> { // TODO check isSquare in sq
                 for (size_t j = 0; j != cols_; ++j)
                     data_[i][j] = elements[i * cols_ + j];
             }
-        } catch (const std::bad_alloc& bad_alloc_err) {
-            std::cerr << bad_alloc_err.what() << "\n";
-            whereException(__FILE__, __LINE__);
+        } catch (const std::bad_alloc& error) {
+            printException(error, __FILE__, __LINE__);
             Base::deleteMatrix();
             throw;
         }
@@ -87,8 +86,7 @@ class Matrix final : public Matrix_Base<ElemType> { // TODO check isSquare in sq
         try {
             ensureSquare();
         } catch (const std::runtime_error& error) {
-            std::cerr << error.what() << "\n";
-            whereException(__FILE__, __LINE__);
+            printException(error, __FILE__, __LINE__);
             throw;
         }
 
@@ -113,17 +111,28 @@ class Matrix final : public Matrix_Base<ElemType> { // TODO check isSquare in sq
                 ++swapRowsCount;
             }
 
-            double* chosenRow = tmp.getRow(j);
+            double* chosenRow;
+
+            try {
+                chosenRow = tmp.getRow(j);
+            } catch (const std::out_of_range& error) {
+                std::cerr << error.what() << "\n";
+            }
 
             if (doubleCompare::isEqual(chosenRow[j], 0.))
                 return 0.;
 
             for (size_t i = j + 1; i != rows_; ++i) {
-                double* row = tmp.getRow(i);
-                double divCoef = row[j] / chosenRow[j];
+                try {
+                    double* row = tmp.getRow(i);
+                    double divCoef = row[j] / chosenRow[j];
 
-                for (size_t r_ind = j; r_ind != cols_; ++r_ind) {
-                    row[r_ind] -= chosenRow[r_ind] * divCoef;
+                    for (size_t r_ind = j; r_ind != cols_; ++r_ind) {
+                        row[r_ind] -= chosenRow[r_ind] * divCoef;
+                    }
+                } catch (std::out_of_range& error) {
+                    printException(error, __FILE__, __LINE__);
+                    throw;
                 }
             }
         }
@@ -131,7 +140,7 @@ class Matrix final : public Matrix_Base<ElemType> { // TODO check isSquare in sq
         try {
             determinant = tmp.getMainDiagElemsMult();
         } catch (const std::runtime_error& error) {
-            std::cerr << error.what() << "\n";
+            printException(error, __FILE__, __LINE__);
             throw;
         }
 
@@ -145,12 +154,11 @@ class Matrix final : public Matrix_Base<ElemType> { // TODO check isSquare in sq
         std::swap(data_[first], data_[second]);
     }
 
-    ElemType getTrace() const {
+    ElemType getTrace() const & {
         try {
             ensureSquare();
         } catch (const std::runtime_error& error) {
-            std::cerr << error.what() << "\n";
-            whereException(__FILE__, __LINE__);
+            printException(error, __FILE__, __LINE__);
             throw;
         }
 
@@ -160,12 +168,11 @@ class Matrix final : public Matrix_Base<ElemType> { // TODO check isSquare in sq
         return res;
     }
 
-    double getMainDiagElemsMult() const {
+    double getMainDiagElemsMult() const & {
         try {
             ensureSquare();
         } catch (const std::runtime_error& error) {
-            std::cerr << error.what() << "\n";
-            whereException(__FILE__, __LINE__);
+            printException(error, __FILE__, __LINE__);
             throw;
         }
 
@@ -189,6 +196,12 @@ class Matrix final : public Matrix_Base<ElemType> { // TODO check isSquare in sq
         if (rows_ != cols_)
             throw std::runtime_error("Matrix must be square");
     }
+
+    void printException(const std::exception& error, const char* file, size_t line) const noexcept {
+        std::cerr << error.what() << "\n";
+        whereException(file, line);
+    }
+
 
  public:
     #if 0

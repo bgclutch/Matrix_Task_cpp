@@ -77,13 +77,13 @@ class Matrix_Base {
 
     ElemType* getRow(const size_t row) {
         if (row >= rows_)
-            throw std::out_of_range("attempt to get row out of range");
+            throw std::out_of_range("Attempt to get row out of range");
         return data_[row];
     }
 
     const ElemType* getRow(const size_t row) const {
         if (row >= rows_)
-            throw std::out_of_range("attempt to get row out of range");
+            throw std::out_of_range("Attempt to get row out of range");
         return data_[row];
     }
 
@@ -131,7 +131,7 @@ class Matrix_Base {
         data_ = nullptr;
     }
 
-    void whereException (const char* file, const size_t line) const noexcept {
+    void whereException (const char* file, size_t line) const noexcept {
         std::cerr << file << ":" << line << "\n";
     }
 };
