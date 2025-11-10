@@ -50,6 +50,17 @@ TEST(MATRIX_API, proxy_class_test) {
     ASSERT_EQ(matrix[4][2], 42);
 }
 
+TEST(MATRIX_API, operator_square_scope_test) {
+    auto matrix = matrix::Matrix<int>(6, 4, 42);
+    matrix[4][2] = 24;
+    ASSERT_EQ(matrix[4][2], 24);
+}
+
+TEST(MATRIX_API, get_trace_exception_test) {
+    auto matrix = matrix::Matrix<int>(6, 4, 42);
+    EXPECT_THROW(matrix.getTrace(), std::runtime_error);
+}
+
 TEST(MATRIX_API, float_determinant_founder) {
     std::vector<double> data = {
         12, 2, -170, 1742, -8, -2, -9, -10, -3, 5,
