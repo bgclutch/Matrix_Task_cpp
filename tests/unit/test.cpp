@@ -86,11 +86,21 @@ TEST(MATRIX_EXCEPTIONS, dataDeepCopy_exception_test) {
     } catch (const std::out_of_range& error) {
         isThrown = true;
     }
-
     ASSERT_FALSE(isThrown);
 }
 
-TEST(MATRIX_API, float_determinant_founder) {
+TEST(MATRIX_EXCEPTIONS, matrix_template_ctor_excepiton_test) {
+    auto matrix1 = matrix::Matrix<int>(6);
+    EXPECT_NO_THROW(matrix::Matrix<double> matrix2(matrix1));
+}
+
+TEST(MATRIX_EXCEPTIONS, matrix) {
+    std::vector<int> elements{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+
+    EXPECT_THROW(matrix::Matrix<int>(13, elements), std::invalid_argument);
+}
+
+TEST(MATRIX_DETERMINANT, float_determinant_founder) {
     std::vector<double> data = {
         12, 2, -170, 1742, -8, -2, -9, -10, -3, 5,
         8, 2, -17, 536, -2, 0, -2, -3, -1, 1,
@@ -108,7 +118,7 @@ TEST(MATRIX_API, float_determinant_founder) {
     ASSERT_TRUE(doubleCompare::isEqual(matrix.getDeterminant(), 4556));
 }
 
-TEST(MATRIX_API, int_determinant_founder) {
+TEST(MATRIX_DETERMINANT, int_determinant_founder) {
     std::vector<int> data = {
         12, 2, -170, 1742, -8, -2, -9, -10, -3, 5,
         8, 2, -17, 536, -2, 0, -2, -3, -1, 1,

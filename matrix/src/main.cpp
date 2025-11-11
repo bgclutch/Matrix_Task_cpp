@@ -5,7 +5,7 @@ int main() {
     using ElemType = double;
     size_t dimension;
     std::cin >> dimension;
-    if (!std::cin.good()) {
+    if (!std::cin.good() || dimension == 0) {
         std::cerr << "Illegal matrix dimension\n";
         return EXIT_FAILURE;
     }
@@ -16,7 +16,7 @@ int main() {
             for (size_t j = 0; j < dimension; ++j) {
                 ElemType num;
                 if (!(std::cin >> num)) {
-                    std::cerr << "Wrong matrix input data\n";
+                    std::cerr << "Wrong matrix input data: " << num << "\n";
                     return EXIT_FAILURE;
                 }
                 MyMatrix[i][j] = num;
@@ -33,9 +33,6 @@ int main() {
         return EXIT_FAILURE;
     } catch (const std::out_of_range& error) {
         std::cerr << "Out of range error: " << error.what() << "\n";
-        return EXIT_FAILURE;
-    } catch (const std::exception& error) {
-        std::cerr << "Unexpected error: " << error.what() << "\n";
         return EXIT_FAILURE;
     }
 

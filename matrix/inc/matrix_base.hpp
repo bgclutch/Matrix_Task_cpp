@@ -12,17 +12,22 @@ class Matrix_Base {
  protected:
     size_t rows_;
     size_t cols_;
+    size_t used_;
     ElemType** data_;
 
-    Matrix_Base(size_t rows, size_t cols, ElemType value = 0) : rows_{rows}, cols_{cols}, data_{nullptr} { // constructors
+    Matrix_Base(size_t rows, size_t cols, ElemType value = 0) : // constructors
+         rows_{rows}
+        ,cols_{cols}
+        ,used_{0}
+        ,data_{nullptr} {
         try {
             data_ = new ElemType*[rows_];
-            for (size_t i = 0; i != rows_; ++i) {
+            for (size_t i = 0; i != rows_; ++i, ++used_) {
                 data_[i] = new ElemType[cols_];
                 std::fill(data_[i], data_[i] + cols_, value);
             }
-        } catch (...) {
-            whereException(__FILE__, __LINE__);
+        } catch (const std::bad_alloc& error) {
+            std::cerr << error.what() << "\n";
             deleteMatrix();
             throw;
         }
@@ -35,13 +40,18 @@ class Matrix_Base {
         deleteMatrix();
     }
 
-    Matrix_Base(const Matrix_Base<ElemType>& other) : rows_{other.rows_}, cols_{other.cols_}, data_{nullptr} { // copy constructor
+    Matrix_Base(const Matrix_Base<ElemType>& other) : // copy constructor
+         rows_{other.rows_}
+        ,cols_{other.cols_}
+        ,used_{other.used_}
+        ,data_{nullptr} {
         data_ = dataDeepCopy(other.data_);
     }
 
     Matrix_Base(Matrix_Base<ElemType>&& other) noexcept : // move constructor
          rows_{std::exchange(other.rows_, 0)}
         ,cols_{std::exchange(other.cols_, 0)}
+        ,used_{std::exchange(other.used_, 0)}
         ,data_{std::exchange(other.data_, nullptr)} {}
 
     Matrix_Base& operator=(const Matrix_Base<ElemType>& other) { // copy assignment
@@ -50,7 +60,6 @@ class Matrix_Base {
 
         Matrix_Base tmp(other);
         swap(tmp);
-
         return *this;
     }
 
@@ -61,8 +70,8 @@ class Matrix_Base {
         swap(other);
         other.rows_ = 0;
         other.cols_ = 0;
+        other.used_ = 0;
         other.data_ = nullptr;
-
         return *this;
     }
 
@@ -75,13 +84,17 @@ class Matrix_Base {
         return cols_;
     }
 
-    ElemType* getRow(const size_t row) {
+    size_t used() const noexcept {
+        return used_;
+    }
+
+    ElemType* getRow(size_t row) {
         if (row >= rows_)
             throw std::out_of_range("Attempt to get row out of range");
         return data_[row];
     }
 
-    const ElemType* getRow(const size_t row) const {
+    const ElemType* getRow(size_t row) const {
         if (row >= rows_)
             throw std::out_of_range("Attempt to get row out of range");
         return data_[row];
@@ -98,41 +111,39 @@ class Matrix_Base {
     void swap(Matrix_Base& other) noexcept {
         std::swap(rows_, other.rows_);
         std::swap(cols_, other.cols_);
+        std::swap(used_, other.used_);
         std::swap(data_, other.data_);
     }
 
  protected:
     ElemType** dataDeepCopy(ElemType** src) const {
         ElemType** newData = nullptr;
-        size_t i = 0;
+        size_t used = 0;
         try {
             newData = new ElemType*[rows_];
-            for (; i != rows_; ++i)
+            for (size_t i = 0; i != rows_; ++i, ++used)
                 newData[i] = new ElemType[cols_];
 
-            for (size_t j = 0; j != rows_; ++j)
-                std::copy(src[j], src[j] + cols_, newData[j]);
-        } catch (...) {
+            for (size_t i = 0; i != rows_; ++i)
+                std::copy(src[i], src[i] + cols_, newData[i]);
+        } catch (const std::bad_alloc& error) {
+            std::cerr << error.what() << "\n";
             if (newData) {
-                for (size_t j = 0; j != i; ++j)
-                    delete[] newData[j];
-                delete newData;
+                for (size_t i = 0; i != used; ++i)
+                    delete[] newData[i];
+                delete[] newData;
             }
             throw;
         }
-
         return newData;
     }
 
     void deleteMatrix() noexcept {
-        for (size_t i = 0; i != rows_; ++i)
+        for (size_t i = 0; i != used_; ++i)
             delete[] data_[i];
         delete[] data_;
         data_ = nullptr;
-    }
-
-    void whereException (const char* file, size_t line) const noexcept {
-        std::cerr << file << ":" << line << "\n";
+        used_ = 0;
     }
 };
 } // namespace matrix

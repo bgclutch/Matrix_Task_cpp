@@ -8,13 +8,13 @@
 
 namespace matrix {
 template <typename ElemType>
-class Matrix final : public Matrix_Base<ElemType> { // TODO check isSquare in square matrix methods
+class Matrix final : public Matrix_Base<ElemType> {
  private:
     using Base = Matrix_Base<ElemType>;
     using Base::rows_;
     using Base::cols_;
     using Base::data_;
-    using Base::whereException;
+    using Base::used_;
 
  public:
     explicit Matrix(size_t rows, size_t cols, ElemType value = 0) : Matrix_Base<ElemType>(rows, cols, value) {}
@@ -25,17 +25,9 @@ class Matrix final : public Matrix_Base<ElemType> { // TODO check isSquare in sq
         if ((rows_ * cols_) != elements.size())
             throw std::invalid_argument("Matrix and vector sizes aren't same");
 
-        try {
-            data_ = new ElemType*[rows_];
-            for (size_t i = 0; i != rows_; ++i) {
-                data_[i] = new ElemType[cols_];
-                for (size_t j = 0; j != cols_; ++j)
-                    data_[i][j] = elements[i * cols_ + j];
-            }
-        } catch (const std::bad_alloc& error) {
-            printException(error, __FILE__, __LINE__);
-            Base::deleteMatrix();
-            throw;
+        for (size_t i = 0; i != rows_; ++i) {
+            for (size_t j = 0; j != cols_; ++j)
+                data_[i][j] = elements[i * cols_ + j];
         }
     }
 
@@ -83,17 +75,12 @@ class Matrix final : public Matrix_Base<ElemType> { // TODO check isSquare in sq
     }
 
     ElemType getDeterminant() const { // TODO traits for doubleCompare functions
-        try {
-            ensureSquare();
-        } catch (const std::runtime_error& error) {
-            printException(error, __FILE__, __LINE__);
-            throw;
-        }
+        ensureSquare();
 
         double determinant = 1.;
-        Matrix<double> tmp(*this);
-
         int swapRowsCount = 0;
+
+        Matrix<double> tmp(*this);
 
         for (size_t j = 0; j != cols_ - 1; ++j) {
             ElemType comparable = tmp[j][j];
@@ -111,38 +98,22 @@ class Matrix final : public Matrix_Base<ElemType> { // TODO check isSquare in sq
                 ++swapRowsCount;
             }
 
-            double* chosenRow;
-
-            try {
-                chosenRow = tmp.getRow(j);
-            } catch (const std::out_of_range& error) {
-                std::cerr << error.what() << "\n";
-            }
+            double* chosenRow = tmp.getRow(j);
 
             if (doubleCompare::isEqual(chosenRow[j], 0.))
                 return 0.;
 
             for (size_t i = j + 1; i != rows_; ++i) {
-                try {
-                    double* row = tmp.getRow(i);
-                    double divCoef = row[j] / chosenRow[j];
+                double* row = tmp.getRow(i);
+                double divCoef = row[j] / chosenRow[j];
 
-                    for (size_t r_ind = j; r_ind != cols_; ++r_ind) {
-                        row[r_ind] -= chosenRow[r_ind] * divCoef;
-                    }
-                } catch (std::out_of_range& error) {
-                    printException(error, __FILE__, __LINE__);
-                    throw;
+                for (size_t r_ind = j; r_ind != cols_; ++r_ind) {
+                    row[r_ind] -= chosenRow[r_ind] * divCoef;
                 }
             }
         }
 
-        try {
-            determinant = tmp.getMainDiagElemsMult();
-        } catch (const std::runtime_error& error) {
-            printException(error, __FILE__, __LINE__);
-            throw;
-        }
+        determinant = tmp.getMainDiagElemsMult();
 
         if (swapRowsCount % 2)
             determinant = -determinant;
@@ -150,17 +121,12 @@ class Matrix final : public Matrix_Base<ElemType> { // TODO check isSquare in sq
         return std::is_integral_v<ElemType> ? std::round(determinant) : determinant;
     }
 
-    void swapRowsByInd(const size_t first, const size_t second) noexcept {
+    void swapRowsByInd(size_t first, size_t second) noexcept {
         std::swap(data_[first], data_[second]);
     }
 
     ElemType getTrace() const & {
-        try {
-            ensureSquare();
-        } catch (const std::runtime_error& error) {
-            printException(error, __FILE__, __LINE__);
-            throw;
-        }
+        ensureSquare();
 
         ElemType res = 0;
         for (size_t i = 0; i != rows_; ++i)
@@ -169,12 +135,7 @@ class Matrix final : public Matrix_Base<ElemType> { // TODO check isSquare in sq
     }
 
     double getMainDiagElemsMult() const & {
-        try {
-            ensureSquare();
-        } catch (const std::runtime_error& error) {
-            printException(error, __FILE__, __LINE__);
-            throw;
-        }
+        ensureSquare();
 
         double res = 1;
         for (size_t i = 0; i != rows_; ++i)
@@ -196,12 +157,6 @@ class Matrix final : public Matrix_Base<ElemType> { // TODO check isSquare in sq
         if (rows_ != cols_)
             throw std::runtime_error("Matrix must be square");
     }
-
-    void printException(const std::exception& error, const char* file, size_t line) const noexcept {
-        std::cerr << error.what() << "\n";
-        whereException(file, line);
-    }
-
 
  public:
     #if 0
