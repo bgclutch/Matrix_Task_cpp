@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <utility>
 #include <algorithm>
 #include <cmath>
 #include <cassert>
@@ -12,13 +13,12 @@ class Matrix_Base {
  protected:
     size_t rows_;
     size_t cols_;
-    size_t used_;
+    size_t used_ = 0;
     ElemType** data_;
 
     Matrix_Base(size_t rows, size_t cols, ElemType value = 0) : // constructors
          rows_{rows}
         ,cols_{cols}
-        ,used_{0}
         ,data_{nullptr} {
         try {
             data_ = new ElemType*[rows_];
