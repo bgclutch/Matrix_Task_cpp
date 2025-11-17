@@ -1,6 +1,9 @@
 #include "gtest/gtest.h"
 #include "matrix.hpp"
+#include "controllable.hpp"
 #include <vector>
+
+int Controllable::control_ = 1;
 
 TEST(MATRIX_BASE, copy_ctor_test) {
     auto matrix = matrix::Matrix<int>::eye(7, 10);
@@ -62,24 +65,24 @@ TEST(MATRIX_EXCEPTIONS, getTrace_exception_test) {
 }
 
 TEST(MATRIX_EXCEPTIONS, getRow_exception_test) {
-    auto matrix = matrix::Matrix<int>(2,2);
+    auto matrix = matrix::Matrix<int>(2, 2);
     EXPECT_THROW(matrix.getRow(2), std::out_of_range);
 }
 
 TEST(MATRIX_EXCEPTIONS, getDeterminant_exception_test) {
     std::vector<int> elements {9, 2, 3, 4, 15, 6};
-    auto matrix = matrix::Matrix<int>(2,3, elements);
+    auto matrix = matrix::Matrix<int>(2, 3, elements);
     EXPECT_THROW(matrix.getDeterminant(), std::runtime_error);
 }
 
 TEST(MATRIX_EXCEPTIONS, getMainDiagElemsMult_exception_test) {
     std::vector<int> elements {9, 2, 3, 4, 15, 6};
-    auto matrix = matrix::Matrix<int>(2,3, elements);
+    auto matrix = matrix::Matrix<int>(2, 3, elements);
     EXPECT_THROW(matrix.getMainDiagElemsMult(), std::runtime_error);
 }
 
 TEST(MATRIX_EXCEPTIONS, dataDeepCopy_exception_test) {
-    auto matrix1 = matrix::Matrix<int>(2,2);
+    auto matrix1 = matrix::Matrix<int>(2, 2);
     bool isThrown = false;
     try {
         auto matrix2 = matrix1;
@@ -94,10 +97,24 @@ TEST(MATRIX_EXCEPTIONS, matrix_template_ctor_excepiton_test) {
     EXPECT_NO_THROW(matrix::Matrix<double> matrix2(matrix1));
 }
 
-TEST(MATRIX_EXCEPTIONS, matrix) {
+TEST(MATRIX_EXCEPTIONS, matrix_and_vector_sizes) {
     std::vector<int> elements{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
 
     EXPECT_THROW(matrix::Matrix<int>(13, elements), std::invalid_argument);
+}
+
+TEST(MATRIX_EXCEPTIONS, copy_ctor_exception) {
+    Controllable::control_ = 0;
+    bool isThrown = false;
+
+    try {
+        auto matrix1 = matrix::Matrix<Controllable>{3};
+        auto matrix2(matrix1);
+    } catch (std::bad_alloc& error) {
+        isThrown = true;
+    }
+
+    ASSERT_TRUE(isThrown);
 }
 
 TEST(MATRIX_DETERMINANT, float_determinant_founder) {
@@ -112,7 +129,7 @@ TEST(MATRIX_DETERMINANT, float_determinant_founder) {
         -38, 2, 493, -4154, 23, 1, 19, 23, 5, -11,
         -2, 0, 17, -335, 1, 1, 2, 2, 1, -1,
         6, -2, -68, 402, -3, 1, -1, -2, 0, 1
-        };
+    };
 
     matrix::Matrix<double> matrix(10, data);
     ASSERT_TRUE(doubleCompare::isEqual(matrix.getDeterminant(), 4556));
@@ -130,7 +147,7 @@ TEST(MATRIX_DETERMINANT, int_determinant_founder) {
         -38, 2, 493, -4154, 23, 1, 19, 23, 5, -11,
         -2, 0, 17, -335, 1, 1, 2, 2, 1, -1,
         6, -2, -68, 402, -3, 1, -1, -2, 0, 1
-        };
+    };
 
     matrix::Matrix<int> matrix(10, data);
     ASSERT_EQ(matrix.getDeterminant(), 4556);
@@ -150,7 +167,7 @@ TEST(MATRIX_DETERMINANT, find_matrix_2) {
         2506.1087680785718, -1956.9451126154602, 7873.620614110752, -7.917359577336612, -221.4488518523916,
         -1607.2694715995829, 1463.6127111420506, -5347.716822148405, 56.337861492440744, 468.2865708953589,
         6077.050787890941, -4773.831948675019, 19133.282065869455, -26.003735495215977, -581.3468994558089
-        };
+    };
     matrix::Matrix<double> matrix(5, data);
 
     ASSERT_TRUE(doubleCompare::isEqual(matrix.getDeterminant(), 42));

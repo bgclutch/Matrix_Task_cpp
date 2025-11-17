@@ -7,6 +7,7 @@ add_executable(tests
 
 target_include_directories(tests PRIVATE
     ${PROJECT_SOURCE_DIR}/matrix/inc
+    ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 target_link_libraries(tests PRIVATE

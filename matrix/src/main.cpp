@@ -1,5 +1,8 @@
 #include "matrix.hpp"
+#include "controllable.hpp"
 #include <iostream>
+
+int Controllable::control_ = 0;
 
 int main() {
     using ElemType = double;
