@@ -28,13 +28,8 @@ class Matrix_Base {
                 newData[used_] = new ElemType[cols_];
                 std::fill(newData[used_], newData[used_] + cols_, value);
             }
-        } catch (const std::bad_alloc& error) {
-            std::cerr << error.what() << "\n";
-            if (newData) {
-                for (size_t i = 0; i != (used_ + 1); ++i)
-                    delete[] newData[i];
-                delete[] newData;
-            }
+        } catch (std::bad_alloc&) {
+            deleteTmpMemory(newData, used_ + 1);
             throw;
         }
         data_ = newData;
@@ -130,13 +125,8 @@ class Matrix_Base {
 
             for (size_t i = 0; i != rows_; ++i)
                 std::copy(src[i], src[i] + cols_, newData[i]);
-        } catch (const std::bad_alloc& error) {
-            std::cerr << error.what() << "\n";
-            if (newData) {
-                for (size_t i = 0; i != used; ++i)
-                    delete[] newData[i];
-                delete[] newData;
-            }
+        } catch (std::bad_alloc&) {
+            deleteTmpMemory(newData, used);
             throw;
         }
         return newData;
@@ -148,6 +138,15 @@ class Matrix_Base {
         delete[] data_;
         data_ = nullptr;
         used_ = 0;
+    }
+
+ private:
+    static void deleteTmpMemory(ElemType** newData, size_t used) noexcept {
+        if (newData) {
+            for (size_t i = 0; i != used; ++i)
+                delete[] newData[i];
+            delete[] newData;
+        }
     }
 };
 } // namespace matrix

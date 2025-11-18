@@ -28,14 +28,7 @@ int main() {
 
         ElemType matrix_determinant = MyMatrix.getDeterminant();
         std::cout << matrix_determinant << std::endl;
-    } catch (const std::runtime_error& error) {
-        std::cerr << "Runtime error: " << error.what() << "\n";
-        return EXIT_FAILURE;
-    } catch (const std::bad_alloc& error) {
-        std::cerr << "Bad alloc error: " << error.what() << "\n";
-        return EXIT_FAILURE;
-    } catch (const std::out_of_range& error) {
-        std::cerr << "Out of range error: " << error.what() << "\n";
+    } catch (std::exception&) {
         return EXIT_FAILURE;
     }
 
