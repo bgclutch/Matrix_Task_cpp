@@ -17,8 +17,13 @@ class Matrix final : public Matrix_Base<ElemType> {
     using Base::used_;
 
  public:
-    explicit Matrix(size_t rows, size_t cols, ElemType value = ElemType()) : Matrix_Base<ElemType>(rows, cols, value) {}
-    explicit Matrix(size_t dimension) : Matrix_Base<ElemType>(dimension) {}
+    explicit Matrix(size_t rows, size_t cols, ElemType value = ElemType()) : Matrix_Base<ElemType>(rows, cols) {
+        for (size_t i = 0; i != rows_; ++i) {
+            std::fill(data_[i], data_[i] + cols_, value);
+        }
+    }
+
+    explicit Matrix(size_t dimension) : Matrix<ElemType>(dimension, dimension) {}
 
     explicit Matrix(size_t rows, size_t cols, const std::vector<ElemType>& elements) :
         Matrix_Base<ElemType>(rows, cols) {

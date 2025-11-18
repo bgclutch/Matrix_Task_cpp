@@ -16,27 +16,14 @@ class Matrix_Base {
     size_t used_ = 0;
     ElemType** data_;
 
-    Matrix_Base(size_t rows, size_t cols, ElemType value = ElemType()) : // constructors
+    Matrix_Base(size_t rows, size_t cols) : // constructors
          rows_{rows}
         ,cols_{cols}
         ,data_{nullptr} {
-        ElemType** newData = nullptr;
-        try {
-            newData = new ElemType*[rows_];
-            assert(used_ == 0);
-            for (; used_ != rows_; ++used_) {
-                newData[used_] = new ElemType[cols_];
-                std::fill(newData[used_], newData[used_] + cols_, value);
-            }
-        } catch (std::bad_alloc&) {
-            deleteTmpMemory(newData, used_ + 1);
-            throw;
-        }
+        ElemType** newData = allocateBuffer();
+        used_ = rows_;
         data_ = newData;
     }
-
-    explicit Matrix_Base(size_t rows) :
-        Matrix_Base(rows, rows) {}
 
     ~Matrix_Base() { // destructor
         deleteMatrix();
@@ -47,7 +34,8 @@ class Matrix_Base {
         ,cols_{other.cols_}
         ,used_{other.used_}
         ,data_{nullptr} {
-        data_ = dataDeepCopy(other.data_);
+        data_ = other.allocateBuffer();
+        dataDeepCopy(other.data_, data_);
     }
 
     Matrix_Base(Matrix_Base<ElemType>&& other) noexcept : // move constructor
@@ -115,16 +103,18 @@ class Matrix_Base {
     }
 
  protected:
-    ElemType** dataDeepCopy(ElemType** src) const {
+    void dataDeepCopy(ElemType** src, ElemType** target) const {
+        for (size_t i = 0; i != rows_; ++i)
+            std::copy(src[i], src[i] + cols_, target[i]);
+    }
+
+    ElemType** allocateBuffer() const {
         ElemType** newData = nullptr;
         size_t used = 0;
         try {
             newData = new ElemType*[rows_];
             for (; used != rows_; ++used)
                 newData[used] = new ElemType[cols_];
-
-            for (size_t i = 0; i != rows_; ++i)
-                std::copy(src[i], src[i] + cols_, newData[i]);
         } catch (std::bad_alloc&) {
             deleteTmpMemory(newData, used);
             throw;

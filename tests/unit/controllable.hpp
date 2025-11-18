@@ -13,7 +13,6 @@ struct Controllable {
     Controllable(const Controllable& other) : resource_{other.resource_} {
         if (control_ == 0) {
             control_ = 1;
-            std::cerr << "Exception will be thrown soon!\n";
             throw std::bad_alloc();
         }
         --control_;

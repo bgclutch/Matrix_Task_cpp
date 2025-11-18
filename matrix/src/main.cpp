@@ -14,7 +14,7 @@ int main() {
     }
 
     try {
-        matrix::Matrix<ElemType> MyMatrix(dimension);
+        matrix::Matrix<ElemType> MyMatrix{dimension};
         for (size_t i = 0; i < dimension; ++i) {
             for (size_t j = 0; j < dimension; ++j) {
                 ElemType num;
