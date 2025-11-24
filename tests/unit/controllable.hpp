@@ -10,12 +10,13 @@ struct Controllable {
 
     Controllable() : resource_(new int(1)) {}
 
-    Controllable(const Controllable& other) : resource_{other.resource_} {
-        if (control_ == 0) {
-            control_ = 1;
+    Controllable(const Controllable& other) : resource_(nullptr) {
+        if (control_ % 5 == 0) {
+            control_ = 5;
             throw std::bad_alloc();
         }
         --control_;
+        resource_ = new int(*other.resource_);
     }
 
     Controllable& operator=(const Controllable& other) {
@@ -29,7 +30,7 @@ struct Controllable {
 
 
     Controllable& operator=(Controllable&& other) noexcept {
-        std::swap(*this, other);
+        std::swap(resource_, other.resource_);
         return *this;
     }
 

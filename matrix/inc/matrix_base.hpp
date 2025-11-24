@@ -29,26 +29,12 @@ class Matrix_Base {
         deleteMatrix();
     }
 
-    Matrix_Base(const Matrix_Base<ElemType>& other) : // copy constructor
-         rows_{other.rows_}
-        ,cols_{other.cols_}
-        ,used_{other.used_}
-        ,data_{nullptr} {
-        data_ = other.allocateBuffer();
-        dataDeepCopy(other.data_, data_);
-    }
-
     Matrix_Base(Matrix_Base<ElemType>&& other) noexcept : // move constructor
          rows_{std::exchange(other.rows_, 0)}
         ,cols_{std::exchange(other.cols_, 0)}
         ,used_{std::exchange(other.used_, 0)}
         ,data_{std::exchange(other.data_, nullptr)} {}
 
-    Matrix_Base& operator=(const Matrix_Base<ElemType>& other) { // copy assignment
-        Matrix_Base tmp(other);
-        swap(tmp);
-        return *this;
-    }
 
     Matrix_Base& operator=(Matrix_Base<ElemType>&& other) noexcept { // move assignment
         if (this == &other)
@@ -62,39 +48,10 @@ class Matrix_Base {
         return *this;
     }
 
+    Matrix_Base(const Matrix_Base&) = delete;            // copy constructor
+    Matrix_Base& operator=(const Matrix_Base&) = delete; // copy assignment
+
  public:
-    size_t rows() const noexcept {
-        return rows_;
-    }
-
-    size_t cols() const noexcept {
-        return cols_;
-    }
-
-    size_t used() const noexcept {
-        return used_;
-    }
-
-    ElemType* getRow(size_t row) {
-        if (row >= rows_)
-            throw std::out_of_range("Attempt to get row out of range");
-        return data_[row];
-    }
-
-    const ElemType* getRow(size_t row) const {
-        if (row >= rows_)
-            throw std::out_of_range("Attempt to get row out of range");
-        return data_[row];
-    }
-
-    ElemType*& operator[](size_t i) noexcept {
-        return data_[i];
-    }
-
-    const ElemType*& operator[](size_t i) const noexcept {
-        return data_[i];
-    }
-
     void swap(Matrix_Base& other) noexcept {
         std::swap(rows_, other.rows_);
         std::swap(cols_, other.cols_);
@@ -103,11 +60,6 @@ class Matrix_Base {
     }
 
  protected:
-    void dataDeepCopy(ElemType** src, ElemType** target) const {
-        for (size_t i = 0; i != rows_; ++i)
-            std::copy(src[i], src[i] + cols_, target[i]);
-    }
-
     ElemType** allocateBuffer() const {
         ElemType** newData = nullptr;
         size_t used = 0;

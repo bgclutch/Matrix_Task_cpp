@@ -8,7 +8,7 @@
 
 namespace matrix {
 template <typename ElemType>
-class Matrix final : public Matrix_Base<ElemType> {
+class Matrix final : private Matrix_Base<ElemType> {
  private:
     using Base = Matrix_Base<ElemType>;
     using Base::rows_;
@@ -17,7 +17,7 @@ class Matrix final : public Matrix_Base<ElemType> {
     using Base::used_;
 
  public:
-    explicit Matrix(size_t rows, size_t cols, ElemType value = ElemType()) : Matrix_Base<ElemType>(rows, cols) {
+    explicit Matrix(size_t rows, size_t cols, ElemType value = ElemType()) : Base(rows, cols) {
         for (size_t i = 0; i != rows_; ++i) {
             std::fill(data_[i], data_[i] + cols_, value);
         }
@@ -45,6 +45,17 @@ class Matrix final : public Matrix_Base<ElemType> {
             for (size_t j = 0; j != cols_; ++j)
                 data_[i][j] = static_cast<ElemType>(other[i][j]);
         }
+    }
+
+    Matrix(const Matrix<ElemType>& other) : // copy constructor
+        Base{other.rows_, other.cols_} {
+        dataDeepCopy(other.data_, data_);
+    }
+
+    Matrix& operator=(const Matrix<ElemType>& other) { // copy assignment
+        Matrix tmp(other);
+        this->swap(tmp);
+        return *this;
     }
 
     static Matrix eye(size_t rows, ElemType value = 1) {
@@ -161,6 +172,36 @@ class Matrix final : public Matrix_Base<ElemType> {
     void ensureSquare() const {
         if (rows_ != cols_)
             throw std::runtime_error("Matrix must be square");
+    }
+
+    size_t rows() const noexcept {
+        return rows_;
+    }
+
+    size_t cols() const noexcept {
+        return cols_;
+    }
+
+    size_t used() const noexcept {
+        return used_;
+    }
+
+    ElemType* getRow(size_t row) {
+        if (row >= rows_)
+            throw std::out_of_range("Attempt to get row out of range");
+        return data_[row];
+    }
+
+    const ElemType* getRow(size_t row) const {
+        if (row >= rows_)
+            throw std::out_of_range("Attempt to get row out of range");
+        return data_[row];
+    }
+
+ private:
+    void dataDeepCopy(ElemType** src, ElemType** target) const {
+        for (size_t i = 0; i != rows_; ++i)
+            std::copy(src[i], src[i] + cols_, target[i]);
     }
 
  public:

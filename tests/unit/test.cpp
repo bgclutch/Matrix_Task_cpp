@@ -3,7 +3,7 @@
 #include "controllable.hpp"
 #include <vector>
 
-int Controllable::control_ = 1;
+int Controllable::control_ = 5;
 
 TEST(MATRIX_BASE, copy_ctor_test) {
     auto matrix = matrix::Matrix<int>::eye(7, 10);
@@ -104,12 +104,26 @@ TEST(MATRIX_EXCEPTIONS, matrix_and_vector_sizes) {
 }
 
 TEST(MATRIX_EXCEPTIONS, copy_ctor_exception) {
-    Controllable::control_ = 0;
+    Controllable::control_ = 6;
     bool isThrown = false;
 
     try {
         auto matrix1 = matrix::Matrix<Controllable>{3};
         auto matrix2(matrix1);
+    } catch (std::bad_alloc& error) {
+        isThrown = true;
+    }
+
+    ASSERT_TRUE(isThrown);
+}
+
+TEST(MATRIX_EXCEPTIONS, copy_assignment_exception) {
+    Controllable::control_ = 6;
+    bool isThrown = false;
+
+    try {
+        auto matrix1 = matrix::Matrix<Controllable>{3};
+        auto matrix2 = matrix1;
     } catch (std::bad_alloc& error) {
         isThrown = true;
     }
