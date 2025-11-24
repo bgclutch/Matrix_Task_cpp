@@ -118,11 +118,11 @@ TEST(MATRIX_EXCEPTIONS, copy_ctor_exception) {
 }
 
 TEST(MATRIX_EXCEPTIONS, copy_assignment_exception) {
-    Controllable::control_ = 6;
+    Controllable::control_ = 9;
     bool isThrown = false;
 
     try {
-        auto matrix1 = matrix::Matrix<Controllable>{3};
+        auto matrix1 = matrix::Matrix<Controllable>{2, 3};
         auto matrix2 = matrix1;
     } catch (std::bad_alloc& error) {
         isThrown = true;
