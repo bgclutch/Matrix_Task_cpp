@@ -5,26 +5,26 @@
 
 int Controllable::control_ = 5;
 
-TEST(MATRIX_BASE, copy_ctor_test) {
+TEST(MATRIX_BASIC, copy_ctor_test) {
     auto matrix = matrix::Matrix<int>::eye(7, 10);
     auto copy_matrix = matrix;
     ASSERT_EQ(matrix[1][1], copy_matrix[5][5]);
 }
 
-TEST(MATRIX_BASE, move_ctor_test) {
+TEST(MATRIX_BASIC, move_ctor_test) {
     auto matrix = matrix::Matrix<int>::eye(7, 10);
     auto moved_matrix = std::move(matrix);
     ASSERT_EQ(moved_matrix[5][5], 10);
 }
 
-TEST(MATRIX_BASE, copy_assign_test) {
+TEST(MATRIX_BASIC, copy_assign_test) {
     auto matrix = matrix::Matrix<int>::eye(7, 10);
     auto another_matrix = matrix::Matrix<int>::eye(2);
     another_matrix = matrix;
     ASSERT_EQ(another_matrix.rows(), matrix.rows());
 }
 
-TEST(MATRIX_BASE, move_assign_test) {
+TEST(MATRIX_BASIC, move_assign_test) {
     auto matrix = matrix::Matrix<int>::eye(7, 10);
     auto another_matrix = matrix::Matrix<int>::eye(2);
     another_matrix = std::move(matrix);

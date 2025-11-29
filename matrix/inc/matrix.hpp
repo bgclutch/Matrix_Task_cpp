@@ -1,32 +1,35 @@
 #pragma once
 
-#include "matrix_base.hpp"
 #include "double_compare.hpp"
+#include "array_memory.hpp"
 #include <cassert>
+#include <cmath>
 #include <iostream>
 #include <vector>
 
 namespace matrix {
 template <typename ElemType>
-class Matrix final : private Matrix_Base<ElemType> {
+class Matrix final {
  private:
-    using Base = Matrix_Base<ElemType>;
-    using Base::rows_;
-    using Base::cols_;
-    using Base::data_;
-    using Base::used_;
+    size_t rows_;
+    size_t cols_;
+    ArrayMemory<ArrayMemory<ElemType>> data_;
 
  public:
-    explicit Matrix(size_t rows, size_t cols, ElemType value = ElemType()) : Base(rows, cols) {
+    Matrix(size_t rows, size_t cols, ElemType value = ElemType()) :
+         rows_{rows}
+        ,cols_{cols}
+        ,data_{rows} {
         for (size_t i = 0; i != rows_; ++i) {
-            std::fill(data_[i], data_[i] + cols_, value);
+            data_[i] = ArrayMemory<ElemType>(cols_);
+            std::fill(data_[i].getData(), data_[i].getData() + cols_, value);
         }
     }
 
     explicit Matrix(size_t dimension) : Matrix<ElemType>(dimension, dimension) {}
 
-    explicit Matrix(size_t rows, size_t cols, const std::vector<ElemType>& elements) :
-        Matrix_Base<ElemType>(rows, cols) {
+    Matrix(size_t rows, size_t cols, const std::vector<ElemType>& elements) :
+        Matrix<ElemType>(rows, cols) {
         if ((rows_ * cols_) != elements.size())
             throw std::invalid_argument("Matrix and vector sizes aren't same");
 
@@ -36,7 +39,7 @@ class Matrix final : private Matrix_Base<ElemType> {
         }
     }
 
-    explicit Matrix(size_t dimension, const std::vector<ElemType>& elements) :
+    Matrix(size_t dimension, const std::vector<ElemType>& elements) :
         Matrix<ElemType>(dimension, dimension, elements) {}
 
     template <typename OtherType>  // TODO requires random access iterator tag
@@ -47,9 +50,24 @@ class Matrix final : private Matrix_Base<ElemType> {
         }
     }
 
+    Matrix(Matrix<ElemType>&& other) noexcept : // move constructor
+         rows_{std::exchange(other.rows_, 0)}
+        ,cols_{std::exchange(other.cols_, 0)}
+        ,data_{std::move(other.data_)} {}
+
+
+    Matrix& operator=(Matrix<ElemType>&& other) noexcept { // move assignment
+        if (this == &other)
+            return *this;
+
+        swap(other);
+        return *this;
+    }
+
     Matrix(const Matrix<ElemType>& other) : // copy constructor
-        Base{other.rows_, other.cols_} {
-        dataDeepCopy(other.data_, data_);
+        Matrix{other.rows_, other.cols_} {
+        for (size_t i = 0; i != rows_; ++i)
+            std::copy(other.data_[i].getData(), other.data_[i].getData() + cols_, data_[i].getData());
     }
 
     Matrix& operator=(const Matrix<ElemType>& other) { // copy assignment
@@ -83,11 +101,12 @@ class Matrix final : private Matrix_Base<ElemType> {
 
  public:
     ProxyRow operator[](size_t row) noexcept {
-        return ProxyRow(data_[row]);
+        return ProxyRow(data_[row].getData());
     }
 
-    const ProxyRow operator[](size_t row) const noexcept {
-        return ProxyRow(data_[row]);
+    const ElemType* operator[](size_t row) const noexcept {
+        return data_[row].getData();
+
     }
 
     ElemType getDeterminant() const { // TODO traits for doubleCompare functions
@@ -141,7 +160,7 @@ class Matrix final : private Matrix_Base<ElemType> {
         std::swap(data_[first], data_[second]);
     }
 
-    ElemType getTrace() const & {
+    ElemType getTrace() const {
         ensureSquare();
 
         ElemType res = 0;
@@ -182,28 +201,23 @@ class Matrix final : private Matrix_Base<ElemType> {
         return cols_;
     }
 
-    size_t used() const noexcept {
-        return used_;
-    }
-
     ElemType* getRow(size_t row) {
         if (row >= rows_)
             throw std::out_of_range("Attempt to get row out of range");
-        return data_[row];
+        return data_[row].getData();
     }
 
     const ElemType* getRow(size_t row) const {
         if (row >= rows_)
             throw std::out_of_range("Attempt to get row out of range");
-        return data_[row];
+        return data_[row].getData();
     }
 
- private:
-    void dataDeepCopy(ElemType** src, ElemType** target) const {
-        for (size_t i = 0; i != rows_; ++i)
-            std::copy(src[i], src[i] + cols_, target[i]);
+    void swap(Matrix& other) noexcept {
+        std::swap(rows_, other.rows_);
+        std::swap(cols_, other.cols_);
+        data_.swap(other.data_);
     }
-
  public:
     #if 0
     void printMatrix() {
