@@ -3,6 +3,8 @@
 #include "controllable.hpp"
 #include "array_memory.hpp"
 #include <vector>
+#include <list>
+#include <array>
 
 int Controllable::control_ = 5;
 
@@ -89,13 +91,25 @@ TEST(MATRIX_EXCEPTIONS, getRow_exception_test) {
 
 TEST(MATRIX_EXCEPTIONS, getDeterminant_exception_test) {
     std::vector<int> elements {9, 2, 3, 4, 15, 6};
-    auto matrix = matrix::Matrix<int>(2, 3, elements);
+    auto matrix = matrix::Matrix<int>(2, 3, elements.begin(), elements.end());
     EXPECT_THROW(matrix.getDeterminant(), std::runtime_error);
 }
 
-TEST(MATRIX_EXCEPTIONS, getMainDiagElemsMult_exception_test) {
-    std::vector<int> elements {9, 2, 3, 4, 15, 6};
-    auto matrix = matrix::Matrix<int>(2, 3, elements);
+TEST(MATRIX_EXCEPTIONS, getMainDiagElemsMult_exception_test_1) {
+    std::list<int> elements {9, 2, 3, 4, 15, 6};
+    auto matrix = matrix::Matrix<int>(2, 3, elements.begin(), elements.end());
+    EXPECT_THROW(matrix.getMainDiagElemsMult(), std::runtime_error);
+}
+
+TEST(MATRIX_EXCEPTIONS, getMainDiagElemsMult_exception_test_2) {
+    std::initializer_list<int> elements {9, 2, 3, 4, 15, 6};
+    auto matrix = matrix::Matrix<int>(2, 3, elements.begin(), elements.end());
+    EXPECT_THROW(matrix.getMainDiagElemsMult(), std::runtime_error);
+}
+
+TEST(MATRIX_EXCEPTIONS, getMainDiagElemsMult_exception_test_3) {
+    int elements[] = {9, 2, 3, 4, 15, 6};
+    auto matrix = matrix::Matrix<int>(2, 3, std::begin(elements), std::end(elements));
     EXPECT_THROW(matrix.getMainDiagElemsMult(), std::runtime_error);
 }
 
@@ -116,9 +130,9 @@ TEST(MATRIX_EXCEPTIONS, matrix_template_ctor_excepiton_test) {
 }
 
 TEST(MATRIX_EXCEPTIONS, matrix_and_vector_sizes) {
-    std::vector<int> elements{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+    std::initializer_list<int> elements{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
 
-    EXPECT_THROW(matrix::Matrix<int>(13, elements), std::invalid_argument);
+    EXPECT_THROW(matrix::Matrix<int>(13, elements.begin(), elements.end()), std::invalid_argument);
 }
 
 TEST(MATRIX_EXCEPTIONS, copy_ctor_exception) {
@@ -163,12 +177,12 @@ TEST(MATRIX_DETERMINANT, float_determinant_founder) {
         6, -2, -68, 402, -3, 1, -1, -2, 0, 1
     };
 
-    matrix::Matrix<double> matrix(10, data);
+    matrix::Matrix<double> matrix(10, data.begin(), data.end());
     ASSERT_TRUE(doubleCompare::isEqual(matrix.getDeterminant(), 4556));
 }
 
 TEST(MATRIX_DETERMINANT, int_determinant_founder) {
-    std::vector<int> data = {
+    std::list<int> data = {
         12, 2, -170, 1742, -8, -2, -9, -10, -3, 5,
         8, 2, -17, 536, -2, 0, -2, -3, -1, 1,
         22, -8, -306, 1608, -14, 3, -5, -7, 1, 3,
@@ -181,35 +195,63 @@ TEST(MATRIX_DETERMINANT, int_determinant_founder) {
         6, -2, -68, 402, -3, 1, -1, -2, 0, 1
     };
 
-    matrix::Matrix<int> matrix(10, data);
+    matrix::Matrix<int> matrix(10, data.begin(), data.end());
     ASSERT_EQ(matrix.getDeterminant(), 4556);
 }
 
 TEST(MATRIX_DETERMINANT, find_matrix_1) {
+    std::initializer_list<int> data = {14, 15, 16, 17};
+    matrix::Matrix<int> matrix(2, data.begin(), data.end());
+
+    ASSERT_EQ(matrix.getDeterminant(), -2);
+}
+
+TEST(MATRIX_DETERMINANT, find_matrix_1_array) {
+    std::array<int, 4> data = {14, 15, 16, 17};
+    matrix::Matrix<int> matrix(2, data.begin(), data.end());
+
+    ASSERT_EQ(matrix.getDeterminant(), -2);
+}
+
+TEST(MATRIX_DETERMINANT, find_matrix_1_vector) {
     std::vector<int> data = {14, 15, 16, 17};
-    matrix::Matrix<int> matrix(2, data);
+    matrix::Matrix<int> matrix(2, data.begin(), data.end());
+
+    ASSERT_EQ(matrix.getDeterminant(), -2);
+}
+
+TEST(MATRIX_DETERMINANT, find_matrix_1_list) {
+    std::list<int> data = {14, 15, 16, 17};
+    matrix::Matrix<int> matrix(2, data.begin(), data.end());
+
+    ASSERT_EQ(matrix.getDeterminant(), -2);
+}
+
+TEST(MATRIX_DETERMINANT, find_matrix_1_c_ctyle_array) {
+    int data[] = {14, 15, 16, 17};
+    matrix::Matrix<int> matrix(2, std::begin(data), std::end(data));
 
     ASSERT_EQ(matrix.getDeterminant(), -2);
 }
 
 TEST(MATRIX_DETERMINANT, find_matrix_2) {
-    std::vector<double> data = {
+    std::initializer_list<double> data = {
         8180.627334555369, -6831.092903566726, 26334.869144551878, -134.7138781584852, -1416.0404521548967,
         27078.686504592846, -22744.605081047015, 87361.04225105884, -477.7083504082621, -4894.529972287412,
         2506.1087680785718, -1956.9451126154602, 7873.620614110752, -7.917359577336612, -221.4488518523916,
         -1607.2694715995829, 1463.6127111420506, -5347.716822148405, 56.337861492440744, 468.2865708953589,
         6077.050787890941, -4773.831948675019, 19133.282065869455, -26.003735495215977, -581.3468994558089
     };
-    matrix::Matrix<double> matrix(5, data);
+    matrix::Matrix<double> matrix(5, data.begin(), data.end());
 
     ASSERT_TRUE(doubleCompare::isEqual(matrix.getDeterminant(), 42));
 }
 
 TEST(MATRIX_DETERMINANT, find_matrix_3) {
-    std::vector<int> data = {
+    std::list<int> data = {
         -212, -133,
         -94, 154};
-    matrix::Matrix<int> matrix(2, data);
+    matrix::Matrix<int> matrix(2, data.begin(), data.end());
 
     ASSERT_EQ(matrix.getDeterminant(), -45150);
 }
@@ -224,28 +266,28 @@ TEST(MATRIX_DETERMINANT, find_matrix_4) {
         0.6794583638566078, -0.7150294413497893, 0.6328386577445005, -9.265186604619412, 13.289990582295106, -0.20230019597966753, -4.98846977461523,
         17.91056736906623, 13.292379364554542, 6.603135452294989, 104.89023113106911, -1.8081093052178758, 57.08420791217224, 12.969652861541771
     };
-    matrix::Matrix<double> matrix(7, data);
+    matrix::Matrix<double> matrix(7, data.begin(), data.end());
 
     ASSERT_TRUE(doubleCompare::isEqual(matrix.getDeterminant(), 555));
 }
 
 TEST(MATRIX_DETERMINANT, find_matrix_5) {
-    std::vector<long long> data = {
+    std::initializer_list<long long> data = {
         134, -86, -270,
         97, 69, 86,
         42, -144, -145
     };
-    matrix::Matrix<long long> matrix(3, data);
+    matrix::Matrix<long long> matrix(3, data.begin(), data.end());
 
     ASSERT_EQ(matrix.getDeterminant(), 3352384);
 }
 
 TEST(MATRIX_DETERMINANT, find_matrix_6) {
-    std::vector<long double> data = {
+    long double data[] = {
         212.35, 128.59,
         -68.77, -256.63
     };
-    matrix::Matrix<long double> matrix(2, data);
+    matrix::Matrix<long double> matrix(2, std::begin(data), std::end(data));
 
     ASSERT_TRUE(doubleCompare::isEqual(matrix.getDeterminant(), -45652.2462));
 }

@@ -28,19 +28,24 @@ class Matrix final {
 
     explicit Matrix(size_t dimension) : Matrix<ElemType>(dimension, dimension) {}
 
-    Matrix(size_t rows, size_t cols, const std::vector<ElemType>& elements) :
-        Matrix<ElemType>(rows, cols) {
-        if ((rows_ * cols_) != elements.size())
-            throw std::invalid_argument("Matrix and vector sizes aren't same");
-
+    template<std::input_iterator Iterator>
+    Matrix(size_t rows, size_t cols, Iterator begin, Iterator end) :
+        Matrix(rows, cols) {
         for (size_t i = 0; i != rows_; ++i) {
-            for (size_t j = 0; j != cols_; ++j)
-                data_[i][j] = elements[i * cols_ + j];
+            for (size_t j = 0; j != cols_; ++j, ++begin) {
+                if (begin == end)
+                    throw std::invalid_argument("Matrix bigger than data");
+                data_[i][j] = static_cast<ElemType>(*begin);
+            }
         }
+        if (begin != end)
+            throw std::invalid_argument("Matrix smaller than data");
     }
 
-    Matrix(size_t dimension, const std::vector<ElemType>& elements) :
-        Matrix<ElemType>(dimension, dimension, elements) {}
+    template<std::input_iterator Iterator>
+    Matrix(size_t dimension, Iterator begin, Iterator end) :
+        Matrix(dimension, dimension, begin, end) {}
+
 
     template <typename OtherType>  // TODO requires random access iterator tag
     explicit Matrix(const Matrix<OtherType>& other) : Matrix(other.rows(), other.cols()) {
@@ -54,7 +59,6 @@ class Matrix final {
          rows_{std::exchange(other.rows_, 0)}
         ,cols_{std::exchange(other.cols_, 0)}
         ,data_{std::move(other.data_)} {}
-
 
     Matrix& operator=(Matrix<ElemType>&& other) noexcept { // move assignment
         if (this == &other)
@@ -169,7 +173,7 @@ class Matrix final {
         return res;
     }
 
-    double getMainDiagElemsMult() const & {
+    double getMainDiagElemsMult() const {
         ensureSquare();
 
         double res = 1;
