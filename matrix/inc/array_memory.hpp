@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <utility>
 
 namespace matrix {
 template <typename ElemType>
@@ -21,8 +22,7 @@ class ArrayMemory {
 
     ArrayMemory(ArrayMemory&& other) noexcept :
          encapsulatedData_{std::exchange(other.encapsulatedData_, nullptr)}
-        ,len_{std::exchange(other.len_, 0)}
-    {}
+        ,len_{std::exchange(other.len_, 0)} {}
 
     ArrayMemory& operator=(ArrayMemory&& other) noexcept {
         if (this == &other)

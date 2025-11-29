@@ -2,7 +2,7 @@
 
 #include "double_compare.hpp"
 #include "array_memory.hpp"
-#include <cassert>
+#include <utility>
 #include <cmath>
 #include <iostream>
 #include <vector>

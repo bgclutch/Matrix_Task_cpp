@@ -1,9 +1,27 @@
 #include "gtest/gtest.h"
 #include "matrix.hpp"
 #include "controllable.hpp"
+#include "array_memory.hpp"
 #include <vector>
 
 int Controllable::control_ = 5;
+
+TEST(ARRAY_MEMORY, move_ctor_test) {
+    matrix::ArrayMemory<int> mem(10);
+    mem[1] = 1;
+    mem[2] = 2;
+    auto mem2 = std::move(mem);
+    EXPECT_EQ(mem2[1] + mem2[2], 3);
+}
+
+TEST(ARRAY_MEMORY, move_assign_test) {
+    matrix::ArrayMemory<int> mem(10);
+    matrix::ArrayMemory<int> mem2(8);
+    mem[1] = 1;
+    mem[7] = 10;
+    mem2 = std::move(mem);
+    EXPECT_EQ(mem2[1] + mem2[7], 11);
+}
 
 TEST(MATRIX_BASIC, copy_ctor_test) {
     auto matrix = matrix::Matrix<int>::eye(7, 10);
